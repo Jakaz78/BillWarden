@@ -205,3 +205,22 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+.venv/
+media/
+# --- Django ---
+*.log
+*.pot
+*.pyc
+__pycache__/
+db.sqlite3
+media/
+staticfiles/
+
+# --- Środowisko i IDE ---
+.venv/
+.idea/
+.vscode/
+
+# --- Pliki z sekretami (BARDZO WAŻNE) ---
+.env
+secret.key

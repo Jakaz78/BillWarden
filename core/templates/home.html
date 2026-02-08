@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>BillWarden - Moje Wydatki</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .receipt-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; align-items: center; }
+        .receipt-info { margin-left: 20px; }
+        .upload-section { background: #f0f0f0; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        button { background: #28a745; color: white; border: none; padding: 10px 20px; cursor: pointer; }
+        h1 { color: #333; }
+        .price { font-size: 1.5em; font-weight: bold; color: #d9534f; }
+    </style>
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
+</head>
+<body>
+
+    <h1>🧾 BillWarden</h1>
+
+    <div class="upload-section">
+        <h3>Dodaj nowy paragon</h3>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">🚀 Analizuj Paragon</button>
+        </form>
+    </div>
+
+    <h2>Historia Wydatków</h2>
+
+    {% for receipt in receipts %}
+        <div class="receipt-card">
+            <a href="{{ receipt.receipt_image.url }}" target="_blank">
+                <img src="{{ receipt.receipt_image.url }}" width="100" style="border-radius: 5px;">
+            </a>
+
+            <div class="receipt-info">
+                <h3>{{ receipt.shop_name|default:"Nieznany Sklep" }}</h3>
+                <p>Data: <b>{{ receipt.transaction_date|default:"---" }}</b></p>
+                <p class="price">{{ receipt.transaction_total_amount|default:"0.00" }} PLN</p>
+            </div>
+        </div>
+    {% empty %}
+        <p>Brak paragonów. Dodaj pierwszy!</p>
+    {% endfor %}
+
+</body>
+</html>

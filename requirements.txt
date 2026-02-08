@@ -1,1 +1,8 @@
 django
+Pillow
+paddlepaddle
+paddleocr
+opencv-python-headless
+PIL
+numpy
+python-dotenv
