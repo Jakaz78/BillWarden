@@ -3,48 +3,373 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BillWarden - Moje Wydatki</title>
     <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .receipt-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; align-items: center; }
-        .receipt-info { margin-left: 20px; }
-        .upload-section { background: #f0f0f0; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
-        button { background: #28a745; color: white; border: none; padding: 10px 20px; cursor: pointer; }
-        h1 { color: #333; }
-        .price { font-size: 1.5em; font-weight: bold; color: #d9534f; }
+        /* =========================================
+           1. ZMIENNE KOLORYSTYCZNE (THEMING)
+           ========================================= */
+        :root {
+            --bg-color: #f4f7f6;           /* Tło strony */
+            --card-bg: #ffffff;            /* Tło kafelków */
+            --text-main: #2c3e50;          /* Główny tekst */
+            --text-secondary: #7f8c8d;     /* Daty, opisy */
+            --border-color: #ddd;          /* Ramki */
+            --accent-color: #27ae60;       /* Zielony (kwoty) */
+            --danger-bg: #fafafa;          /* Tło przycisku usuwania */
+            --danger-hover: #ffe6e6;       /* Tło usuwania po najechaniu */
+            --table-header: #f8f9fa;       /* Nagłówek tabeli */
+            --input-bg: #fff;              /* Tło formularzy */
+            --shadow: rgba(0,0,0,0.05);    /* Cień kafelków */
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --border-color: #333;
+            --accent-color: #2ecc71;       /* Jaśniejszy zielony dla kontrastu */
+            --danger-bg: #2c2c2c;
+            --danger-hover: #4a1b1b;
+            --table-header: #252525;
+            --input-bg: #333;
+            --shadow: rgba(0,0,0,0.3);
+        }
+
+        /* =========================================
+           2. GŁÓWNE STYLE
+           ========================================= */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        h1, h2, h3 { color: var(--text-main); }
+        a { text-decoration: none; }
+
+        /* Przycisk zmiany motywu */
+        #theme-toggle {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+        #theme-toggle:hover { opacity: 0.8; }
+
+        /* =========================================
+           3. KAFELKI (Ogólny styl dla sekcji)
+           ========================================= */
+        .card-box {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px var(--shadow);
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        /* =========================================
+           4. SEKCJA TOTAL (POPRAWIONA!)
+           ========================================= */
+        .total-summary {
+            background-color: var(--card-bg); /* TERAZ KORZYSTA ZE ZMIENNEJ! */
+            color: var(--text-main);          /* TERAZ KORZYSTA ZE ZMIENNEJ! */
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+            border: 1px solid var(--border-color); /* Dodajemy ramkę dla spójności */
+            box-shadow: 0 4px 10px var(--shadow);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .total-summary h2 {
+            color: var(--text-secondary); /* Lekko szary nagłówek "Łącznie wydano" */
+            font-weight: normal;
+        }
+
+        .total-amount {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--accent-color); /* Zielony kolor zostaje (jest czytelny na obu tłach) */
+            margin-top: 5px;
+            text-shadow: 1px 1px 2px var(--shadow);
+        }
+
+        /* =========================================
+           5. TABELA MIESIĘCZNA
+           ========================================= */
+        .monthly-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .monthly-table th {
+            background-color: var(--table-header);
+            color: var(--text-main);
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .monthly-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        /* =========================================
+           6. LISTA PARAGONÓW (Układ 3-kolumnowy)
+           ========================================= */
+        .receipt-card {
+            display: flex;
+            align-items: stretch; /* Rozciągnij do pełnej wysokości */
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden; /* Ważne dla rogów zdjęcia */
+            height: 100px;    /* Sztywna wysokość */
+            transition: transform 0.2s, background-color 0.3s;
+            box-shadow: 0 2px 4px var(--shadow);
+        }
+
+        .receipt-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* LEWA: Zdjęcie */
+        .receipt-thumb {
+            width: 160px;
+            height: 100%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border-right: 1px solid var(--border-color);
+        }
+        .receipt-placeholder {
+            width: 160px;
+            height: 100%;
+            background: var(--table-header);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            flex-shrink: 0;
+            border-right: 1px solid var(--border-color);
+        }
+
+        /* ŚRODEK: Dane */
+        .receipt-info {
+            flex-grow: 1;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
+        }
+        .receipt-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-main);
+        }
+        .receipt-info p {
+            margin: 0 0 5px 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .receipt-info .price {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 0;
+        }
+
+        /* PRAWA: Przycisk usuwania */
+        .delete-section {
+            width: 60px;
+            flex-shrink: 0;
+            border-left: 1px solid var(--border-color);
+            background-color: var(--danger-bg);
+            transition: background 0.2s;
+        }
+        .delete-section:hover {
+            background-color: var(--danger-hover);
+        }
+        .delete-section form {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* =========================================
+           7. FORMULARZ DODAWANIA
+           ========================================= */
+        .upload-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
+            width: 100%; /* Przycisk na całą szerokość */
+        }
+        .upload-btn:hover { background: #219150; }
+
+        input[type="file"] {
+            margin-top: 5px;
+            color: var(--text-main);
+        }
+
     </style>
     <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
 </head>
 <body>
 
-    <h1>🧾 BillWarden</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1 style="margin: 0;">🧾 BillWarden</h1>
+        <button id="theme-toggle">🌙 Tryb Ciemny</button>
+    </div>
 
-    <div class="upload-section">
-        <h3>Dodaj nowy paragon</h3>
+    <div class="total-summary">
+        <h2 style="margin: 0; font-size: 1.1rem;">Łącznie wydano</h2>
+        <div class="total-amount">
+            {{ total_expenses|default:"0,00" }} PLN
+        </div>
+    </div>
+
+    <div class="card-box">
+        <h3 style="margin-top: 0;">📤 Dodaj nowy paragon</h3>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">🚀 Analizuj Paragon</button>
+            <div style="margin-bottom: 15px;">
+                {{ form.as_p }}
+            </div>
+            <button type="submit" class="upload-btn">🚀 Analizuj Paragon</button>
         </form>
+    </div>
+
+    <div class="card-box">
+        <h3 style="margin-top: 0;">📅 Wydatki według miesięcy</h3>
+        <table class="monthly-table">
+            <thead>
+                <tr>
+                    <th>Miesiąc</th>
+                    <th style="text-align: right;">Kwota</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in monthly_summary %}
+                    <tr>
+                        <td>{{ item.month|date:"F Y"|title }}</td>
+                        <td style="text-align: right; font-weight: bold; color: var(--accent-color);">
+                            {{ item.total|floatformat:2 }} PLN
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="2" style="text-align: center; padding: 15px; color: var(--text-secondary);">
+                            Brak danych do analizy
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
     <h2>Historia Wydatków</h2>
 
     {% for receipt in receipts %}
         <div class="receipt-card">
-            <a href="{{ receipt.receipt_image.url }}" target="_blank">
-                <img src="{{ receipt.receipt_image.url }}" width="100" style="border-radius: 5px;">
-            </a>
+
+            {% if receipt.receipt_image %}
+                <a href="{{ receipt.receipt_image.url }}" target="_blank" style="display: block; height: 100%;">
+                    <img src="{{ receipt.receipt_image.url }}" alt="Paragon" class="receipt-thumb">
+                </a>
+            {% else %}
+                <div class="receipt-placeholder">🧾</div>
+            {% endif %}
 
             <div class="receipt-info">
                 <h3>{{ receipt.shop_name|default:"Nieznany Sklep" }}</h3>
-                <p>Data: <b>{{ receipt.transaction_date|default:"---" }}</b></p>
+                <p>Data: {{ receipt.transaction_date|date:"d.m.Y"|default:"---" }}</p>
                 <p class="price">{{ receipt.transaction_total_amount|default:"0.00" }} PLN</p>
             </div>
+
+            <div class="delete-section">
+                <form method="post" action="{% url 'delete_receipt' receipt.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="delete-btn"
+                            onclick="return confirm('Usunąć paragon ze sklepu {{ receipt.shop_name }}?');"
+                            title="Usuń paragon">
+                        ✕
+                    </button>
+                </form>
+            </div>
+
         </div>
     {% empty %}
-        <p>Brak paragonów. Dodaj pierwszy!</p>
+        <div style="text-align: center; padding: 40px; color: var(--text-secondary); background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color);">
+            <p>Jeszcze nic tu nie ma. Dodaj pierwszy paragon powyżej! 👆</p>
+        </div>
     {% endfor %}
+
+
+    <script>
+        const toggleBtn = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                htmlElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                toggleBtn.innerText = '☀️ Tryb Jasny';
+            } else {
+                htmlElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                toggleBtn.innerText = '🌙 Tryb Ciemny';
+            }
+        }
+
+        if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+            setTheme('dark');
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            const isDark = htmlElement.getAttribute('data-theme') === 'dark';
+            setTheme(isDark ? 'light' : 'dark');
+        });
+    </script>
 
 </body>
 </html>

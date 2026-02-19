@@ -7,19 +7,31 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Receipt',
+            name="Receipt",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('shop_name', models.CharField(blank=True, max_length=128, null=True)),
-                ('transaction_date', models.DateField(blank=True, null=True)),
-                ('transaction_total_amount', models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True)),
-                ('receipt_image', models.ImageField(upload_to='receipts_uploads/')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("shop_name", models.CharField(blank=True, max_length=128, null=True)),
+                ("transaction_date", models.DateField(blank=True, null=True)),
+                (
+                    "transaction_total_amount",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=10, null=True
+                    ),
+                ),
+                ("receipt_image", models.ImageField(upload_to="receipts_uploads/")),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
         ),
     ]

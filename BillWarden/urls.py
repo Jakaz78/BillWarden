@@ -14,15 +14,23 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path
 from core.views import home
-
+from core.functions.receiptUtils import delete_receipt
+import core
 from django.conf import settings
 from django.conf.urls.static import static
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', home, name='home'),
+    path("admin/", admin.site.urls),
+    path("", home, name="home"),
+    path(
+        "delete/<int:receipt_id>/",
+        core.functions.receiptUtils.delete_receipt,
+        name="delete_receipt",
+    ),
 ]
 
 if settings.DEBUG:
