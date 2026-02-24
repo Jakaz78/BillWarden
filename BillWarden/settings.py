@@ -4,6 +4,7 @@ Django settings for BillWarden project.
 
 import os
 from pathlib import Path
+from datetime import timedelta
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,7 +22,7 @@ ALLOWED_HOSTS = [
     "10.0.2.2",  # Dla emulatora Androida
 ]
 
-# 4. Aplikacje
+# ====== Aplikacje ======
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -29,12 +30,18 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "core",  # Twoja aplikacja
+    # Third-party
+    "rest_framework",
+    "corsheaders",
+    # Local
+    "core",
+    "api",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # <-- PRZED CommonMiddleware
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -47,7 +54,7 @@ ROOT_URLCONF = "BillWarden.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "core" / "templates"],  # Upewnienie się co do ścieżki
+        "DIRS": [BASE_DIR / "core" / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -61,7 +68,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "BillWarden.wsgi.application"
 
-# 5. Baza Danych
+# ====== Baza Danych ======
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -69,38 +76,62 @@ DATABASES = {
     }
 }
 
-# 6. Walidacja haseł
+# ====== Walidacja haseł ======
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# 7. Lokalizacja i Czas
-LANGUAGE_CODE = "pl-pl"  # Małe litery to standard
-
-# Zmieniamy na Polskę, żeby godziny na paragonach zgadzały się z rzeczywistością
+# ====== Lokalizacja i Czas ======
+LANGUAGE_CODE = "pl-pl"
 TIME_ZONE = "Europe/Warsaw"
-
 USE_I18N = True
 USE_TZ = True
 
-# 8. Pliki Statyczne (CSS, JS, Ikony)
+# ====== Pliki Statyczne ======
 STATIC_URL = "static/"
 
-
-# 9. Pliki Media (Zdjęcia paragonów)
+# ====== Pliki Media ======
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Ustawienia domyślne dla kluczy głównych (ważne w nowszym Django)
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ====== Autentykacja (web) ======
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "home"
+LOGOUT_REDIRECT_URL = "login"
+
+# ====== Django REST Framework ======
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
+}
+
+# ====== JWT ======
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+# ====== CORS (dla React frontend) ======
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+]
+
+CORS_ALLOW_CREDENTIALS = True

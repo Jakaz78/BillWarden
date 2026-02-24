@@ -12,3 +12,4 @@ class ReceiptAdmin(admin.ModelAdmin):
         "created_at",
     )
     list_display_links = ("id", "shop_name")
+    list_filter = ("user",)

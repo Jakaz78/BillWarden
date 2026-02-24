@@ -217,3 +217,10 @@ staticfiles/
 
 # --- Pliki z sekretami (BARDZO WAŻNE) ---
 secret.key
+
+frontend/node_modules/
+__pycache__/
+*.pyc
+.env
+db.sqlite3
+dist/

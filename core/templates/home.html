@@ -1,115 +1,31 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BillWarden - Moje Wydatki</title>
-    <style>
-        /* =========================================
-           1. ZMIENNE KOLORYSTYCZNE (THEMING)
-           ========================================= */
-        :root {
-            --bg-color: #f4f7f6;           /* Tło strony */
-            --card-bg: #ffffff;            /* Tło kafelków */
-            --text-main: #2c3e50;          /* Główny tekst */
-            --text-secondary: #7f8c8d;     /* Daty, opisy */
-            --border-color: #ddd;          /* Ramki */
-            --accent-color: #27ae60;       /* Zielony (kwoty) */
-            --danger-bg: #fafafa;          /* Tło przycisku usuwania */
-            --danger-hover: #ffe6e6;       /* Tło usuwania po najechaniu */
-            --table-header: #f8f9fa;       /* Nagłówek tabeli */
-            --input-bg: #fff;              /* Tło formularzy */
-            --shadow: rgba(0,0,0,0.05);    /* Cień kafelków */
-        }
+{% extends "base.html" %}
 
-        [data-theme="dark"] {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-main: #e0e0e0;
-            --text-secondary: #a0a0a0;
-            --border-color: #333;
-            --accent-color: #2ecc71;       /* Jaśniejszy zielony dla kontrastu */
-            --danger-bg: #2c2c2c;
-            --danger-hover: #4a1b1b;
-            --table-header: #252525;
-            --input-bg: #333;
-            --shadow: rgba(0,0,0,0.3);
-        }
+{% block title %}BillWarden — Moje Wydatki{% endblock %}
 
-        /* =========================================
-           2. GŁÓWNE STYLE
-           ========================================= */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        h1, h2, h3 { color: var(--text-main); }
-        a { text-decoration: none; }
-
-        /* Przycisk zmiany motywu */
-        #theme-toggle {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: 0.3s;
-        }
-        #theme-toggle:hover { opacity: 0.8; }
-
-        /* =========================================
-           3. KAFELKI (Ogólny styl dla sekcji)
-           ========================================= */
-        .card-box {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 2px 4px var(--shadow);
-            transition: background-color 0.3s, border-color 0.3s;
-        }
-
-        /* =========================================
-           4. SEKCJA TOTAL (POPRAWIONA!)
-           ========================================= */
+{% block extra_css %}
         .total-summary {
-            background-color: var(--card-bg); /* TERAZ KORZYSTA ZE ZMIENNEJ! */
-            color: var(--text-main);          /* TERAZ KORZYSTA ZE ZMIENNEJ! */
+            background-color: var(--card-bg);
+            color: var(--text-main);
             padding: 25px;
             border-radius: 12px;
             margin-bottom: 25px;
             text-align: center;
-            border: 1px solid var(--border-color); /* Dodajemy ramkę dla spójności */
+            border: 1px solid var(--border-color);
             box-shadow: 0 4px 10px var(--shadow);
             transition: background-color 0.3s, color 0.3s;
         }
-
         .total-summary h2 {
-            color: var(--text-secondary); /* Lekko szary nagłówek "Łącznie wydano" */
+            color: var(--text-secondary);
             font-weight: normal;
         }
-
         .total-amount {
             font-size: 3rem;
             font-weight: bold;
-            color: var(--accent-color); /* Zielony kolor zostaje (jest czytelny na obu tłach) */
+            color: var(--accent-color);
             margin-top: 5px;
             text-shadow: 1px 1px 2px var(--shadow);
         }
 
-        /* =========================================
-           5. TABELA MIESIĘCZNA
-           ========================================= */
         .monthly-table {
             width: 100%;
             border-collapse: collapse;
@@ -128,28 +44,22 @@
             color: var(--text-secondary);
         }
 
-        /* =========================================
-           6. LISTA PARAGONÓW (Układ 3-kolumnowy)
-           ========================================= */
         .receipt-card {
             display: flex;
-            align-items: stretch; /* Rozciągnij do pełnej wysokości */
+            align-items: stretch;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 10px;
             margin-bottom: 15px;
-            overflow: hidden; /* Ważne dla rogów zdjęcia */
-            height: 100px;    /* Sztywna wysokość */
+            overflow: hidden;
+            height: 100px;
             transition: transform 0.2s, background-color 0.3s;
             box-shadow: 0 2px 4px var(--shadow);
         }
-
         .receipt-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-
-        /* LEWA: Zdjęcie */
         .receipt-thumb {
             width: 160px;
             height: 100%;
@@ -168,8 +78,6 @@
             flex-shrink: 0;
             border-right: 1px solid var(--border-color);
         }
-
-        /* ŚRODEK: Dane */
         .receipt-info {
             flex-grow: 1;
             padding: 0 20px;
@@ -197,8 +105,6 @@
             color: var(--accent-color);
             margin: 0;
         }
-
-        /* PRAWA: Przycisk usuwania */
         .delete-section {
             width: 60px;
             flex-shrink: 0;
@@ -227,9 +133,6 @@
             height: 100%;
         }
 
-        /* =========================================
-           7. FORMULARZ DODAWANIA
-           ========================================= */
         .upload-btn {
             background: #27ae60;
             color: white;
@@ -239,7 +142,7 @@
             cursor: pointer;
             font-size: 1rem;
             margin-top: 10px;
-            width: 100%; /* Przycisk na całą szerokość */
+            width: 100%;
         }
         .upload-btn:hover { background: #219150; }
 
@@ -247,15 +150,21 @@
             margin-top: 5px;
             color: var(--text-main);
         }
+{% endblock %}
 
-    </style>
-    <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
-</head>
-<body>
-
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h1 style="margin: 0;">🧾 BillWarden</h1>
-        <button id="theme-toggle">🌙 Tryb Ciemny</button>
+{% block content %}
+    <div class="navbar">
+        <div class="navbar-left">
+            <h1 style="margin: 0;">🧾 BillWarden</h1>
+        </div>
+        <div class="navbar-right">
+            <span class="user-badge">👤 {{ user.username }}</span>
+            <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="btn-logout">Wyloguj</button>
+            </form>
+            <button id="theme-toggle">🌙 Tryb Ciemny</button>
+        </div>
     </div>
 
     <div class="total-summary">
@@ -308,7 +217,6 @@
 
     {% for receipt in receipts %}
         <div class="receipt-card">
-
             {% if receipt.receipt_image %}
                 <a href="{{ receipt.receipt_image.url }}" target="_blank" style="display: block; height: 100%;">
                     <img src="{{ receipt.receipt_image.url }}" alt="Paragon" class="receipt-thumb">
@@ -333,43 +241,10 @@
                     </button>
                 </form>
             </div>
-
         </div>
     {% empty %}
         <div style="text-align: center; padding: 40px; color: var(--text-secondary); background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color);">
             <p>Jeszcze nic tu nie ma. Dodaj pierwszy paragon powyżej! 👆</p>
         </div>
     {% endfor %}
-
-
-    <script>
-        const toggleBtn = document.getElementById('theme-toggle');
-        const htmlElement = document.documentElement;
-
-        const savedTheme = localStorage.getItem('theme');
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-        function setTheme(theme) {
-            if (theme === 'dark') {
-                htmlElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
-                toggleBtn.innerText = '☀️ Tryb Jasny';
-            } else {
-                htmlElement.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'light');
-                toggleBtn.innerText = '🌙 Tryb Ciemny';
-            }
-        }
-
-        if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-            setTheme('dark');
-        }
-
-        toggleBtn.addEventListener('click', () => {
-            const isDark = htmlElement.getAttribute('data-theme') === 'dark';
-            setTheme(isDark ? 'light' : 'dark');
-        });
-    </script>
-
-</body>
-</html>
+{% endblock %}

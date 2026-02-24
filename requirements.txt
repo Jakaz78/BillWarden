@@ -5,3 +5,8 @@ paddleocr
 opencv-python-headless
 numpy
 python-dotenv
+
+# ====== REST API ======
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers

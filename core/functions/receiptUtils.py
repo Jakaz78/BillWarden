@@ -2,7 +2,7 @@ from django.db.models import Sum, QuerySet
 from decimal import Decimal
 from core.models import Receipt
 from django.shortcuts import redirect, get_object_or_404
-
+from django.contrib.auth.decorators import login_required
 
 def aggregate_expenses(receipts: QuerySet[Receipt]) -> Decimal:
 
@@ -15,7 +15,7 @@ def aggregate_expenses(receipts: QuerySet[Receipt]) -> Decimal:
 
     return Decimal(total_expenses).quantize(Decimal("0.00"))
 
-
+@login_required
 def delete_receipt(request, receipt_id):
     receipt = get_object_or_404(Receipt, id=receipt_id)
 

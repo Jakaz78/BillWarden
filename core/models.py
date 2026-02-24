@@ -5,9 +5,18 @@ from core.OCR.ocr import extract_text_from_receipt
 from core.OCR.parser import ReceiptParser
 from core.OCR.validators import validate_file_size, validate_file_extension
 from .functions.imagesUtils import get_hashed_file_path
-
+from django.contrib.auth.models import User
 
 class Receipt(models.Model):
+
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="receipts",
+        null=True,
+        blank=True,
+    )
 
     receipt_image = models.ImageField(
         upload_to=get_hashed_file_path,
