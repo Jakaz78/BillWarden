@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: billwarden_app
+    
+    # Przekazujemy plik .env do środka
+    env_file:
+      - .env
+      
+    # Mapujemy porty: [port_komputera]:[port_kontenera]
+    ports:
+      - "8000:8000"
+      
+    # Wolumeny (Synchronizacja plików)
+    volumes:
+      - .:/app              # Twój kod na żywo (Hot Reload)
+      - paddle_cache:/root/.paddleocr # Żeby nie pobierał modelu OCR za każdym razem!
+      
+    # Komenda, która upewnia się, że baza jest zmigrowana przed startem
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+
+# Definicja miejsca na modele OCR
+volumes:
+  paddle_cache:

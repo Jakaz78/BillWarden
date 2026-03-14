@@ -5,7 +5,10 @@ paddleocr
 opencv-python-headless
 numpy
 python-dotenv
+gunicorn
 
+psycopg2-binary
+dj-database-url
 # ====== REST API ======
 djangorestframework
 djangorestframework-simplejwt
