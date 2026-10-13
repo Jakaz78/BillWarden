@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}BillWarden — Moje Wydatki{% endblock %}
+
+{% block extra_css %}
+        .total-summary {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 10px var(--shadow);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .total-summary h2 {
+            color: var(--text-secondary);
+            font-weight: normal;
+        }
+        .total-amount {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-top: 5px;
+            text-shadow: 1px 1px 2px var(--shadow);
+        }
+
+        .monthly-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .monthly-table th {
+            background-color: var(--table-header);
+            color: var(--text-main);
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .monthly-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .receipt-card {
+            display: flex;
+            align-items: stretch;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            height: 100px;
+            transition: transform 0.2s, background-color 0.3s;
+            box-shadow: 0 2px 4px var(--shadow);
+        }
+        .receipt-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .receipt-thumb {
+            width: 160px;
+            height: 100%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border-right: 1px solid var(--border-color);
+        }
+        .receipt-placeholder {
+            width: 160px;
+            height: 100%;
+            background: var(--table-header);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            flex-shrink: 0;
+            border-right: 1px solid var(--border-color);
+        }
+        .receipt-info {
+            flex-grow: 1;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
+        }
+        .receipt-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-main);
+        }
+        .receipt-info p {
+            margin: 0 0 5px 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .receipt-info .price {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 0;
+        }
+        .delete-section {
+            width: 60px;
+            flex-shrink: 0;
+            border-left: 1px solid var(--border-color);
+            background-color: var(--danger-bg);
+            transition: background 0.2s;
+        }
+        .delete-section:hover {
+            background-color: var(--danger-hover);
+        }
+        .delete-section form {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .upload-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
+            width: 100%;
+        }
+        .upload-btn:hover { background: #219150; }
+
+        input[type="file"] {
+            margin-top: 5px;
+            color: var(--text-main);
+        }
+{% endblock %}
+
+{% block content %}
+    <div class="navbar">
+        <div class="navbar-left">
+            <h1 style="margin: 0;">🧾 BillWarden</h1>
+        </div>
+        <div class="navbar-right">
+            <span class="user-badge">👤 {{ user.username }}</span>
+            <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="btn-logout">Wyloguj</button>
+            </form>
+            <button id="theme-toggle">🌙 Tryb Ciemny</button>
+        </div>
+    </div>
+
+    <div class="total-summary">
+        <h2 style="margin: 0; font-size: 1.1rem;">Łącznie wydano</h2>
+        <div class="total-amount">
+            {{ total_expenses|default:"0,00" }} PLN
+        </div>
+    </div>
+
+    <div class="card-box">
+        <h3 style="margin-top: 0;">📤 Dodaj nowy paragon</h3>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div style="margin-bottom: 15px;">
+                {{ form.as_p }}
+            </div>
+            <button type="submit" class="upload-btn">🚀 Analizuj Paragon</button>
+        </form>
+    </div>
+
+    <div class="card-box">
+        <h3 style="margin-top: 0;">📅 Wydatki według miesięcy</h3>
+        <table class="monthly-table">
+            <thead>
+                <tr>
+                    <th>Miesiąc</th>
+                    <th style="text-align: right;">Kwota</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in monthly_summary %}
+                    <tr>
+                        <td>{{ item.month|date:"F Y"|title }}</td>
+                        <td style="text-align: right; font-weight: bold; color: var(--accent-color);">
+                            {{ item.total|floatformat:2 }} PLN
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="2" style="text-align: center; padding: 15px; color: var(--text-secondary);">
+                            Brak danych do analizy
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Historia Wydatków</h2>
+
+    {% for receipt in receipts %}
+        <div class="receipt-card">
+            {% if receipt.receipt_image %}
+                <a href="{{ receipt.receipt_image.url }}" target="_blank" style="display: block; height: 100%;">
+                    <img src="{{ receipt.receipt_image.url }}" alt="Paragon" class="receipt-thumb">
+                </a>
+            {% else %}
+                <div class="receipt-placeholder">🧾</div>
+            {% endif %}
+
+            <div class="receipt-info">
+                <h3>{{ receipt.shop_name|default:"Nieznany Sklep" }}</h3>
+                <p>Data: {{ receipt.transaction_date|date:"d.m.Y"|default:"---" }}</p>
+                <p class="price">{{ receipt.transaction_total_amount|default:"0.00" }} PLN</p>
+            </div>
+
+            <div class="delete-section">
+                <form method="post" action="{% url 'delete_receipt' receipt.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="delete-btn"
+                            onclick="return confirm('Usunąć paragon ze sklepu {{ receipt.shop_name }}?');"
+                            title="Usuń paragon">
+                        ✕
+                    </button>
+                </form>
+            </div>
+        </div>
+    {% empty %}
+        <div style="text-align: center; padding: 40px; color: var(--text-secondary); background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color);">
+            <p>Jeszcze nic tu nie ma. Dodaj pierwszy paragon powyżej! 👆</p>
+        </div>
+    {% endfor %}
+{% endblock %}

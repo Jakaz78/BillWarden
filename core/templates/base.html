@@ -1,0 +1,272 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BillWarden{% endblock %}</title>
+    <style>
+        /* =========================================
+           1. ZMIENNE KOLORYSTYCZNE (THEMING)
+           ========================================= */
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --border-color: #ddd;
+            --accent-color: #27ae60;
+            --danger-bg: #fafafa;
+            --danger-hover: #ffe6e6;
+            --table-header: #f8f9fa;
+            --input-bg: #fff;
+            --shadow: rgba(0,0,0,0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --border-color: #333;
+            --accent-color: #2ecc71;
+            --danger-bg: #2c2c2c;
+            --danger-hover: #4a1b1b;
+            --table-header: #252525;
+            --input-bg: #333;
+            --shadow: rgba(0,0,0,0.3);
+        }
+
+        /* =========================================
+           2. GŁÓWNE STYLE
+           ========================================= */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        h1, h2, h3 { color: var(--text-main); }
+        a { text-decoration: none; color: var(--accent-color); }
+        a:hover { opacity: 0.8; }
+
+        #theme-toggle {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+        #theme-toggle:hover { opacity: 0.8; }
+
+        /* =========================================
+           3. KAFELKI
+           ========================================= */
+        .card-box {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px var(--shadow);
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        /* =========================================
+           4. NAVBAR
+           ========================================= */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-badge {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .btn-logout {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+        .btn-logout:hover {
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+        /* =========================================
+           5. FORMULARZE AUTH
+           ========================================= */
+        .auth-container {
+            max-width: 420px;
+            margin: 60px auto;
+        }
+        .auth-container h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            margin-top: 10px;
+            transition: opacity 0.2s;
+        }
+        .btn-primary:hover { opacity: 0.85; }
+
+        .auth-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* =========================================
+           6. KOMUNIKATY (messages)
+           ========================================= */
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        .messages li {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        .messages .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .messages .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .messages .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .helptext, .form-group ul {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        .form-group ul {
+            padding-left: 18px;
+        }
+        .errorlist {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            list-style: none;
+            padding: 0;
+            margin: 4px 0 0 0;
+        }
+
+        {% block extra_css %}{% endblock %}
+    </style>
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
+</head>
+<body>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+
+    <script>
+        const toggleBtn = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                htmlElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                if (toggleBtn) toggleBtn.innerText = '☀️ Tryb Jasny';
+            } else {
+                htmlElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                if (toggleBtn) toggleBtn.innerText = '🌙 Tryb Ciemny';
+            }
+        }
+
+        if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+            setTheme('dark');
+        }
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                const isDark = htmlElement.getAttribute('data-theme') === 'dark';
+                setTheme(isDark ? 'light' : 'dark');
+            });
+        }
+    </script>
+</body>
+</html>
